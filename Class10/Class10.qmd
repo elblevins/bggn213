@@ -1,0 +1,242 @@
+---
+title: "Class10"
+format: pdf
+author: "Liz"
+---
+
+# Background 
+
+In this mini project we will examine 538 Halloween Candy data. 
+
+What is your favorite candy? What is nougat anyways? And how do you say it in America?
+
+I like Jolly-ranchers. I don't know what nougat is. Never heard of it. In america it means nut bread. 
+
+```{r}
+candy <- read.csv("candy-data.csv", row.names = 1)
+head(candy)
+```
+
+
+```{r}
+nrow(candy)
+```
+```{r}
+sum(candy$fruity=="1")
+```
+
+```{r}
+candy["Twix", ]$winpercent
+```
+
+```{r}
+rownames(candy)
+```
+
+```{r}
+candy["Air Heads", ]$winpercent
+```
+
+```{r}
+candy["Kit Kat", ]$winpercent
+```
+
+```{r}
+candy["Tootsie Roll Snack Bars", ]$winpercent
+```
+
+```{r}
+candy["Sugar Daddy", ]$winpercent
+```
+
+```{r}
+library("skimr")
+skim(candy)
+```
+
+```{r}
+skimr::skim(candy)
+```
+
+>Q6. Is there any variable/column that looks to be on a different scale to the majority of the other columns in the dataset?
+
+Yes the win percent
+
+>Q8. Plot a histogram of winpercent values
+
+```{r}
+hist(candy$winpercent)
+```
+
+```{r}
+hist(candy$winpercent, breaks = 7)
+```
+
+```{r}
+library(ggplot2)
+ggplot(candy)+
+  aes(winpercent)+
+  geom_histogram(bins=10, col="red", fill="yellow")
+```
+
+```{r}
+chocolate.inds <- as.logical(candy$chocolate)
+chocolate.win <- candy[chocolate.inds, ]$winpercent
+mean(chocolate.win)
+```
+
+And for fruit candy...
+
+```{r}
+fruit.inds <- as.logical(candy$fruit)
+fruit.win <- candy[fruit.inds, ]$winpercent
+mean(fruit.win)
+```
+
+
+
+```{r}
+t.test(chocolate.win, fruit.win)
+```
+```{r}
+x <- c(5, 1, 2, 6)
+sort(x, decreasing = T)
+```
+
+```{r}
+x[ order(x) ]
+```
+
+
+```{r}
+y <- c("barry", "alice", "chandra")
+y
+sort(y)
+order(y)
+```
+
+```{r}
+order(candy$winpercent)
+
+```
+
+First we want to order/arrange the whole database winpercent values 
+
+```{r}
+inds <- order(candy$winpercent)
+head(candy[inds, ], n=5)
+```
+
+
+#barplot 
+
+The default barplot, made with `geom_col()`
+```{r}
+ggplot(candy) + 
+  aes(winpercent, reorder(rownames(candy), winpercent)) +
+  geom_col()
+```
+
+
+```{r}
+ggsave("mybarplot.png")
+```
+```{r}
+my_cols <- rep("black", nrow(candy))
+my_cols[as.logical(candy$chocolate)] <- "chocolate"
+my_cols[as.logical(candy$bar)] <- "brown"
+my_cols[as.logical(candy$fruity)] <- "red"
+my_cols
+```
+
+
+Now I can use this vector to color up my bars
+
+```{r}
+ggplot(candy) + 
+  aes(winpercent, reorder(rownames(candy), winpercent)) +
+  geom_col(fill = my_cols)
+```
+
+
+#4. Taking a look at pricepercentage
+
+What about value for money?
+What is the best candy for the least money?
+
+
+
+```{r}
+ggplot(candy) +
+  aes(winpercent, pricepercent, label=rownames(candy)) +
+  geom_point(col=my_cols) +
+  geom_text(col=my_cols)
+ 
+```
+
+
+```{r}
+library(ggrepel)
+
+ggplot(candy) +
+  aes(winpercent, pricepercent, label=rownames(candy)) +
+  geom_point(col=my_cols) +
+  geom_text_repel(col=my_cols, size=3.3, max.overlaps=5)
+```
+
+
+```{r}
+library(corrplot)
+
+cij <- cor(candy)
+corrplot(cij)
+```
+
+#PCA: Principal Component Analysis 
+
+The main function that always there for us `pcomp`. It has an important argument that is set to `scale=FALSE`
+
+```{r}
+pca <- prcomp(candy, scale=TRUE)
+summary(pca)
+```
+My PCA plot (a.k.a) PC1 vs PC2 score plot.
+
+```{r}
+plot(pca$x[ , 1], pca$x[, 2], col=my_cols, pch=16)
+```
+
+```{r}
+my_data <- cbind(candy, pca$x[, 1:3])
+```
+
+```{r}
+p <- ggplot(my_data) +
+    aes(x=PC1, y=PC2, 
+            size=winpercent/100,  
+            text=rownames(my_data),
+            label=rownames(my_data)) +
+        geom_point(col=my_cols)
+
+p
+```
+
+```{r}
+p <- ggplot(my_data) +
+    aes(x=PC1, y=PC2, label=row.names(my_data)) +
+  geom_point(col= my_cols) +
+geom_text_repel(col=my_cols, max.overlaps =7)
+
+p
+```
+
+```{r}
+par(mar=c(8,4,2,2))
+barplot(pca$rotation[,1], las=2, ylab="PC1 Contribution")
+```
+
+
+
+
+
+
