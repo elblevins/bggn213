@@ -1,2 +1,3 @@
 # bggn213
-class_work
+
+My_class_work for Bioinformatics class at UCSD.
